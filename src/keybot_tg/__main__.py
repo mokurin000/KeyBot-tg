@@ -80,8 +80,9 @@ async def add_card_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         return
     try:
-        product_name = context.args[0]
-        new_keys = context.args[1:]
+        call_lines = update.message.text.split("\n")
+        product_name = call_lines[0].split(maxsplit=1)[1]
+        new_keys = map(lambda s: s.strip(), call_lines[1:])
         print(card_keys)
         if product_name in card_keys:
             card_keys[product_name].extend(new_keys)
@@ -93,7 +94,7 @@ async def add_card_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Product not found.")
     except IndexError:
         await update.message.reply_text(
-            "Please use the format: /add_card_keys <product_name> <key1> <key2> ..."
+            "Please use the format: /add_card_keys <product_name>\n<key1>\n<key2>\n..."
         )
 
 
