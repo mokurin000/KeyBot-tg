@@ -2,15 +2,11 @@
 name = "KeyBot-tg"
 version = "0.1.0"
 description = "Default template for PDM package"
-authors = [
-    {name = "poly000", email = "1348292515a@gmail.com"},
-]
-dependencies = [
-    "python-telegram-bot>=21.5",
-]
-requires-python = ">=3.10"
+authors = [{ name = "poly000", email = "1348292515a@gmail.com" }]
+dependencies = ["python-telegram-bot>=21.5"]
+requires-python = ">=3.12"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
