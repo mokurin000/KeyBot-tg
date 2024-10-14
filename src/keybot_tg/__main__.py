@@ -9,6 +9,7 @@ from telegram import (
     BotCommand,
 )
 from telegram.ext import (
+    Application,
     ApplicationBuilder,
     CommandHandler,
     CallbackQueryHandler,
@@ -295,13 +296,11 @@ async def term_of_service(update: Update, _context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     load_data()
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # Initialize the bot before accessing its properties
-    application.bot.initialize()
-    # Access and print bot username
-    bot_username = application.bot.username
-    print(f"Bot username: @{bot_username}")
+    async def print_username(app: Application):
+        print(f"Bot username: @{app.bot.username}")
+
+    application = ApplicationBuilder().token(BOT_TOKEN).post_init(print_username).build()
 
     # Admin commands
     application.add_handler(CommandHandler("create_product", create_product))
