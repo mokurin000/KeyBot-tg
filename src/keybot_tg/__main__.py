@@ -8,6 +8,7 @@ from telegram import (
     InlineKeyboardMarkup,
     BotCommand,
 )
+from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -291,7 +292,7 @@ If you have any question, please contact @iwtfll1 and ask for support.
 
 
 async def term_of_service(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(TOS)
+    await update.message.reply_text(TOS, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def main():
