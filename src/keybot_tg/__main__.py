@@ -297,6 +297,8 @@ def main():
     load_data()
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    # Initialize the bot before accessing its properties
+    application.bot.initialize()
     # Access and print bot username
     bot_username = application.bot.username
     print(f"Bot username: @{bot_username}")
