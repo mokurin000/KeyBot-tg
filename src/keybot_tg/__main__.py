@@ -258,10 +258,20 @@ async def successful_payment_callback(
         await update.message.reply_text(
             f"Thank you for your purchase! Your card keys are:\n{key_list}\nCharge ID: {charge_id}"
         )
+
+        # Notify admin
+        admin_message = f"Successful payment for '{product_name}' by user {user_id}. Charge ID: {charge_id}"
+        for admin_id in ADMIN_IDS:
+            await context.bot.send_message(admin_id, admin_message)
     else:
         await update.message.reply_text(
             f"Sorry, '{product_name}' is out of stock.\nCharge ID: {charge_id}"
         )
+
+        # Notify admin
+        admin_message = f"Out-Of-Stock payment for '{product_name}' by user {user_id}. Charge ID: {charge_id}"
+        for admin_id in ADMIN_IDS:
+            await context.bot.send_message(admin_id, admin_message)
 
 
 async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
