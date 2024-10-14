@@ -149,7 +149,6 @@ async def check_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # User command to start and show product list
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Register commands
     await context.bot.set_my_commands(
         [
             BotCommand("start", "Show the product list"),
@@ -157,9 +156,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             BotCommand("paysupport", "After-pay service"),
         ]
     )
-
     keyboard = [
-        [InlineKeyboardButton(name, callback_data=name)] for name in products.keys()
+        [InlineKeyboardButton(name, callback_data=f"product-{name}")]
+        for name in products.keys()
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
@@ -167,45 +166,74 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Handle product selection and initiate payment
+# Handle product selection
 async def product_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    product_name = query.data
+    product_name = query.data.split("-")[1]
     await query.answer()
-
-    product = products[product_name]
-    title = f"Purchase {product_name}"
-    description = product["description"]
-    payload = f"purchase-{product_name}"
-    currency = "XTR"  # Using stars for payment
-    prices = [LabeledPrice(f"{product_name} card key", product["price"])]
-
-    # Send payment information
-    await query.message.reply_invoice(
-        title=title,
-        description=description,
-        payload=payload,
-        provider_token=PROVIDER_TOKEN,
-        currency=currency,
-        prices=prices,
-        start_parameter="card-purchase",
-        is_flexible=False,
+    await query.message.reply_text(
+        f"How many units of {product_name} would you like to purchase?"
     )
+    context.user_data["selected_product"] = product_name
+
+
+# Handle quantity message
+async def quantity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if "selected_product" not in context.user_data:
+        await update.message.reply_text("Please select a product first using /start.")
+        return
+
+    try:
+        quantity = int(update.message.text.strip())
+        product_name = context.user_data["selected_product"]
+
+        if quantity < 1:
+            raise ValueError("Quantity must be a positive integer.")
+
+        if quantity > len(card_keys[product_name]):
+            await update.message.reply_text(
+                f"Sorry, only {len(card_keys[product_name])} units of {product_name} are available."
+            )
+            return
+
+        product = products[product_name]
+        title = f"Purchase {product_name} ({quantity} units)"
+        description = product["description"]
+        payload = f"purchase-{product_name}-{quantity}"
+        currency = "XTR"
+        prices = [
+            LabeledPrice(
+                f"{product_name} card key x{quantity}", product["price"] * quantity
+            )
+        ]
+
+        await update.message.reply_invoice(
+            title=title,
+            description=description,
+            payload=payload,
+            provider_token=PROVIDER_TOKEN,
+            currency=currency,
+            prices=prices,
+            start_parameter="card-purchase",
+            is_flexible=False,
+        )
+
+    except ValueError:
+        await update.message.reply_text("Please enter a valid integer quantity.")
 
 
 # Handle pre-checkout (check payment information)
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.pre_checkout_query
-    payload = query.invoice_payload
-    if not payload.startswith("purchase-"):
-        await query.answer(ok=False, error_message="Error in payment information.")
+    payload_parts = query.invoice_payload.split("-")
+    product_name = payload_parts[1]
+    quantity = int(payload_parts[2])
 
-    product_name = payload.split("-")[1]
-    if product_name in card_keys and card_keys[product_name]:
+    if product_name in card_keys and len(card_keys[product_name]) >= quantity:
         await query.answer(ok=True)
     else:
         await query.answer(
-            ok=False, error_message=f"Sorry, {product_name} is out of stock."
+            ok=False, error_message=f"Sorry, insufficient stock for {product_name}."
         )
 
 
@@ -215,18 +243,20 @@ async def successful_payment_callback(
 ):
     user_id = update.effective_user.id
     charge_id = update.message.successful_payment.telegram_payment_charge_id
-    product_name = update.message.successful_payment.invoice_payload.split("-")[1]
+    payload_parts = update.message.successful_payment.invoice_payload.split("-")
+    product_name = payload_parts[1]
+    quantity = int(payload_parts[2])
 
     payhistory[user_id] = payhistory.get(user_id, []) + [charge_id]
     save_data()
 
-    if product_name in card_keys and card_keys[product_name]:
-        card_key = card_keys[product_name].pop(
-            0
-        )  # Send the first card key and remove it
+    if product_name in card_keys and len(card_keys[product_name]) >= quantity:
+        purchased_keys = card_keys[product_name][:quantity]
+        del card_keys[product_name][:quantity]
         save_data()
+        key_list = "\n".join(purchased_keys)
         await update.message.reply_text(
-            f"Thank you for your purchase! Your card key is: {card_key}\nCharge ID: {charge_id}"
+            f"Thank you for your purchase! Your card keys are:\n{key_list}\nCharge ID: {charge_id}"
         )
     else:
         await update.message.reply_text(
@@ -240,7 +270,7 @@ async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
         innertext = "Sorry, but we found no transition related to you."
     else:
         innertext = f"""Your transitions:
-{"\n\n".join(map(lambda s: "order id: "+s,payhistory[user_id]))}"""
+{"\n\n".join(map(lambda s: "order id: " + s, payhistory[user_id]))}"""
     result = f"""
 {innertext}
 
@@ -270,6 +300,11 @@ def main():
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(
         MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback)
+    )
+
+    # Handle user-specified quantities
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, quantity_handler)
     )
 
     # Start bot
