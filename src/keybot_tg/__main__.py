@@ -115,9 +115,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             BotCommand("start", "Show the product list"),
             BotCommand("paysupport", "After-pay service"),
-            BotCommand("create_product", "Create a new product (Admin only)"),
-            BotCommand("add_card_keys", "Add card keys to a product (Admin only)"),
-            BotCommand("check_inventory", "Check card key inventory (Admin only)"),
         ]
     )
 
