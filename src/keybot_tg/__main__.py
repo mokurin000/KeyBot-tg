@@ -218,9 +218,9 @@ def main():
     application.add_handler(CommandHandler("create_product", create_product))
     application.add_handler(CommandHandler("add_card_keys", add_card_keys))
     application.add_handler(CommandHandler("check_inventory", check_inventory))
-    application.add_handler(CommandHandler("paysupport", paysupport))
 
     # User commands
+    application.add_handler(CommandHandler("paysupport", paysupport))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(product_selection))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
