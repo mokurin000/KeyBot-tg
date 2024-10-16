@@ -28,9 +28,9 @@ BOT_TOKEN = ""
 PROVIDER_TOKEN = ""
 
 # Store product information and card keys
-products = {}
-card_keys = {}
-payhistory = {}
+products: dict[str, dict] = {}
+card_keys: dict[str, list[str]] = {}
+payhistory: dict[str, list[str]] = {}
 
 
 # Load data from file
@@ -125,7 +125,8 @@ async def add_card_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("No card keys provided to add.")
             return
 
-        if product_name in card_keys:
+        if product_name in products:
+            card_keys[product_name] = card_keys.get(product_name, [])
             card_keys[product_name].extend(new_keys)
             save_data()
             await update.message.reply_text(
