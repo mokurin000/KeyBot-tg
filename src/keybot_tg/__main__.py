@@ -389,7 +389,7 @@ async def confirm_remove_product(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.answer()
     data_parts = query.data.split("-")
-    if len(data_parts) < 4:
+    if len(data_parts) < 3:
         await query.message.reply_text("Invalid confirmation data.")
         return
 
