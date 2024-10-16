@@ -132,7 +132,7 @@ async def add_card_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"Added {len(new_keys)} card key(s) to product '{product_name}'."
             )
         else:
-            await update.message.reply_text("Product not found.")
+            await update.message.reply_text(f"Product '{product_name}' not found.")
     except (IndexError, ValueError):
         await update.message.reply_text(
             "Please use the following format:\n"
