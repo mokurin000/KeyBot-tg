@@ -217,7 +217,7 @@ async def quantity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prices = [
             LabeledPrice(
                 f"{product_name} card key x{quantity}",
-                product["price"] * quantity * 100,  # Assuming price is in cents
+                product["price"] * quantity,  # Assuming price is in cents
             )
         ]
 
