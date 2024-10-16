@@ -19,45 +19,6 @@ from telegram.ext import (
     ContextTypes,
 )
 
-TOS = """
-TERMS OF USE FOR THE BOT
-
-🆘 Important Notice:
-- All transactions through the bot are final and non-refundable for any reason (👉 clause ### 4).
-- This bot is developed and operated on the Telegram platform. We are not a service provider for buying/selling cryptocurrency, but merely a tool to assist users in transactions. Users must understand the risks and comply with the following regulations when using the bot.
-
-### 1. SERVICE DESCRIPTION
-Our bot helps users purchase USDT via the Stars Telegram platform. We only provide tools for transactions and do not manage USDT.
-
-### 2. USER RESPONSIBILITY
-Users are responsible for the information they provide, especially the USDT wallet address. Incorrect information may lead to asset loss, for which we are not liable. Users must ensure that using this service is legal in their jurisdiction.
-
-### 3. NO RESPONSIBILITY FOR TELEGRAM
-We cannot control issues related to Telegram's operations or security. Users should refer to Telegram’s privacy policy for their rights.
-
-### 4. NO REFUND POLICY
-All transactions via the bot are final and non-refundable. Users should verify information before confirming any transaction.
-
-### 5. LIABILITY LIMITATIONS
-We are not liable for any losses related to bot usage, including system errors or connection issues. Users must comply with local laws regarding cryptocurrency trading.
-
-### 6. CRYPTOCURRENCY TRADING RISKS
-Cryptocurrency trading involves high risks due to volatility. Users should understand these risks and make informed decisions.
-
-### 7. DEVELOPER RESPONSIBILITY
-We only develop and maintain the bot. We do not engage in cryptocurrency management. We reserve the right to suspend the bot for misuse without prior notice.
-
-### 8. SECURITY AND PRIVACY
-We do not collect personal information beyond what is necessary for transactions. However, communication via Telegram is not entirely secure.
-
-### 9. CHANGES TO TERMS
-We reserve the right to modify these terms at any time. Continued use of the bot after changes signifies acceptance of the new terms.
-
-### 10. DISPUTE RESOLUTION
-In case of disputes, we will provide documentation to prove the transaction was completed as requested. We are not liable for claims due to user errors.
-"""
-
-
 # Store admin ID
 ADMIN_IDS = []
 # Bot Token
@@ -153,7 +114,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.set_my_commands(
         [
             BotCommand("start", "Show the product list"),
-            BotCommand("tos", "Show Term of Service"),
             BotCommand("paysupport", "After-pay service"),
         ]
     )
@@ -275,6 +235,7 @@ async def successful_payment_callback(
             await context.bot.send_message(admin_id, admin_message)
 
 
+# Admin command to check the inventory of card keys
 async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id not in payhistory:
@@ -288,10 +249,6 @@ async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
 If you have any question, please contact @iwtfll1 and ask for support.
 """
     await update.message.reply_text(result)
-
-
-async def term_of_service(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(TOS)
 
 
 def main():
@@ -309,7 +266,6 @@ def main():
 
     # User commands
     application.add_handler(CommandHandler("paysupport", paysupport))
-    application.add_handler(CommandHandler("tos", term_of_service))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(product_selection))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
