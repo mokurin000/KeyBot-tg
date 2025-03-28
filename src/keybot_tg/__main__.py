@@ -210,7 +210,9 @@ async def quantity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         product = products[product_name]
-        title = f"Purchase {product_name} ({quantity} unit{'s' if quantity >1 else ''})"
+        title = (
+            f"Purchase {product_name} ({quantity} unit{'s' if quantity > 1 else ''})"
+        )
         description = product["description"]
         payload = f"purchase-{product_name}-{quantity}"
         currency = "XTR"
@@ -344,6 +346,25 @@ async def remove_product_command(update: Update, context: ContextTypes.DEFAULT_T
     )
 
 
+async def refund_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        return
+
+    try:
+        _cmd, user_id, telegram_payment_charge_id = update.message.text.split()
+        user_id = int(user_id)
+    except ValueError:
+        await update.message.reply_text(
+            "usage: /refund <user_id:int> <telegram_payment_charge_id:str>"
+        )
+
+    success = await context.bot.refund_star_payment(user_id, telegram_payment_charge_id)
+    if success:
+        await update.message.reply_text(
+            f"refund for {telegram_payment_charge_id} of user {user_id} succeed."
+        )
+
+
 # Handler for remove product button clicks
 async def remove_product_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -432,6 +453,8 @@ def main():
     application.add_handler(CommandHandler("add_card_keys", add_card_keys))
     application.add_handler(CommandHandler("check_inventory", check_inventory))
     application.add_handler(CommandHandler("remove_product", remove_product_command))
+    application.add_handler(CommandHandler("refund", refund_command))
+
     application.add_handler(
         CallbackQueryHandler(
             remove_product_selection, pattern=f"^{REMOVE_PRODUCT_PREFIX}-"
